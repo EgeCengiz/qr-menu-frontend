@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { X } from 'lucide-react';
-import { CATEGORIES } from '../data/menuData';
-import type { MenuItem } from '../types/menu';
+import type { MenuItem, Category } from '../types/menu';
 
 interface SearchModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectItem: (item: MenuItem) => void;
+  categories: Category[];
 }
 
-export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSelectItem }) => {
+export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSelectItem, categories }) => {
   const [query, setQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -42,7 +42,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
     const lowerQuery = trimmed.toLocaleLowerCase('tr-TR');
     const results: { item: MenuItem; categoryPath: string }[] = [];
 
-    CATEGORIES.forEach((cat) => {
+    categories.forEach((cat) => {
       cat.items.forEach((item) => {
         const itemNameTr = item.name.toLocaleLowerCase('tr-TR');
         const itemDescTr = item.desc.toLocaleLowerCase('tr-TR');
@@ -61,7 +61,7 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onSel
     });
 
     return results;
-  }, [query]);
+  }, [query, categories]);
 
   if (!isOpen) return null;
 

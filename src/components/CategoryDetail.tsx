@@ -135,14 +135,16 @@ export const CategoryDetail: React.FC<CategoryDetailProps> = ({
           </div>
         )}
 
-        {/* Product Items Grouped by Subcategory */}
         {category.subCategories && category.subCategories.length > 0 ? (
           category.subCategories.map((sub) => {
-            const subItems = category.items.filter(
-              (item) => item.subCategory === sub.id
-            );
-            // If no item explicitly matches subcategory, fallback to showing items
-            const displayItems = subItems.length > 0 ? subItems : category.items;
+            const subItems = category.items.filter((item) => {
+              if (!item.subCategory) return false;
+              const itemSub = item.subCategory;
+              const itemShort = itemSub.includes('__') ? itemSub.split('__')[1] : itemSub;
+              const subShort = sub.id.includes('__') ? sub.id.split('__')[1] : sub.id;
+              return itemSub === sub.id || itemShort === subShort;
+            });
+            const displayItems = subItems;
 
             return (
               <div key={sub.id} id={`subcategory-${sub.id}`} className="mb-8 scroll-mt-20">

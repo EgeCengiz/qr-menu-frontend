@@ -8,8 +8,8 @@ interface WelcomeScreenProps {
 export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onFinish }) => {
   const [isFadingOut, setIsFadingOut] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const triggerFinish = () => {
     if (isFadingOut) return;

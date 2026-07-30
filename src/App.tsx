@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CATEGORIES } from './data/menuData';
+import { fetchCategories } from './api/menuApi';
 import type { MenuItem, Category } from './types/menu';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { Header } from './components/Header';
@@ -17,10 +17,46 @@ export default function App() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [scrolled, setScrolled] = useState<boolean>(false);
-  // transitionCategory holds the category being "entered" while the overlay plays
   const [transitionCategory, setTransitionCategory] = useState<Category | null>(null);
 
-  // Track window scroll for sticky header effect
+  // ── API Data State ─────────────────────────────────────────────────────────
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  const loadMenu = async () => {
+    setIsLoadingCategories(true);
+    setLoadError(null);
+    try {
+      const data = await fetchCategories();
+      const mapped: Category[] = data.map((cat) => ({
+        ...cat,
+        subCategories: cat.subCategories?.map((sub) => ({
+          id: sub.shortId ?? sub.id,
+          title: sub.title,
+          itemCount: sub.itemCount,
+        })),
+        items: cat.items.map((item) => ({
+          ...item,
+          subCategory: item.subCategory,
+        })),
+      }));
+      setCategories(mapped);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Menü yüklenemedi';
+      setLoadError(msg);
+      console.error('Failed to load menu:', err);
+    } finally {
+      setIsLoadingCategories(false);
+    }
+  };
+
+  // Fetch categories from backend on mount
+  useEffect(() => {
+    void loadMenu();
+  }, []);
+
+  // ── Scroll tracking ────────────────────────────────────────────────────────
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 40);
@@ -38,15 +74,14 @@ export default function App() {
     }
   }, [selectedItem, isSearchOpen, showWelcome, transitionCategory]);
 
-  /** Called when a CategoryCard is tapped on Homepage — start transition overlay while keeping Homepage behind it */
+  /** Called when a CategoryCard is tapped on Homepage */
   const handleCategorySelect = (id: string) => {
-    const cat = CATEGORIES.find((c) => c.id === id) || null;
+    const cat = categories.find((c) => c.id === id) || null;
     if (cat) {
       setTransitionCategory(cat);
     }
   };
 
-  /** Called when the overlay animation expands and covers the full screen (750ms) */
   const handleTransitionCovered = () => {
     if (transitionCategory) {
       setSelectedCategory(transitionCategory.id);
@@ -54,18 +89,16 @@ export default function App() {
     }
   };
 
-  /** Called when the overlay finishes its closing animation */
   const handleTransitionComplete = () => {
     setTransitionCategory(null);
   };
 
-  /** Change active category (e.g. from bottom navigation bar) */
   const handleCategoryChange = (id: string) => {
     setSelectedCategory(id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const activeCategoryObj = CATEGORIES.find((c) => c.id === selectedCategory) || null;
+  const activeCategoryObj = categories.find((c) => c.id === selectedCategory) || null;
 
   return (
     <div className="min-h-screen bg-[#110e0c] font-sans text-[#e2d8c3] selection:bg-[#c8a165]/30">
@@ -81,7 +114,7 @@ export default function App() {
         {activeCategoryObj ? (
           <CategoryDetail
             category={activeCategoryObj}
-            allCategories={CATEGORIES}
+            allCategories={categories}
             onBack={() => setSelectedCategory(null)}
             onSelectCategory={handleCategoryChange}
             onSelectItem={(item) => setSelectedItem(item)}
@@ -97,7 +130,7 @@ export default function App() {
               onReplayIntro={() => setShowWelcome(true)}
             />
 
-            {/* Hero Section (Rize Çarşı & Main Logo) */}
+            {/* Hero Section */}
             <HeroSection />
 
             {/* Categories Section */}
@@ -141,20 +174,93 @@ export default function App() {
                     textTransform: 'uppercase',
                   }}
                 >
-                  {CATEGORIES.length < 10 ? `0${CATEGORIES.length}` : CATEGORIES.length} SEÇKİ
+                  {isLoadingCategories
+                    ? '...'
+                    : `${categories.length < 10 ? `0${categories.length}` : categories.length} SEÇKİ`}
                 </span>
               </div>
 
-              {/* Category Cards */}
-              <div style={{ paddingTop: '4px' }}>
-                {CATEGORIES.map((cat) => (
-                  <CategoryCard
-                    key={cat.id}
-                    category={cat}
-                    onSelect={handleCategorySelect}
+              {/* Loading State */}
+              {isLoadingCategories && (
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '60px 16px',
+                    gap: '12px',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      border: '2px solid rgba(200,161,101,0.3)',
+                      borderTop: '2px solid #c8a165',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite',
+                    }}
                   />
-                ))}
-              </div>
+                  <span style={{ color: '#a0907a', fontSize: '12px', letterSpacing: '0.1em' }}>
+                    MENÜ YÜKLENİYOR...
+                  </span>
+                </div>
+              )}
+
+              {/* Error State */}
+              {loadError && !isLoadingCategories && (
+                <div
+                  style={{
+                    margin: '16px',
+                    padding: '20px 16px',
+                    background: 'rgba(127,0,0,0.2)',
+                    border: '1px solid rgba(200,50,50,0.3)',
+                    borderRadius: '12px',
+                    textAlign: 'center',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '10px',
+                  }}
+                >
+                  <p style={{ color: '#fca5a5', fontSize: '13px', margin: 0 }}>
+                    ⚠️ {loadError}
+                  </p>
+                  <p style={{ color: '#a0907a', fontSize: '11px', margin: 0 }}>
+                    Backend sunucusunun çalıştığından emin olun.
+                  </p>
+                  <button
+                    onClick={() => void loadMenu()}
+                    style={{
+                      marginTop: '4px',
+                      padding: '6px 16px',
+                      background: '#c8a165',
+                      color: '#110e0c',
+                      fontWeight: 600,
+                      fontSize: '12px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Yeniden Dene
+                  </button>
+                </div>
+              )}
+
+              {/* Category Cards */}
+              {!isLoadingCategories && !loadError && (
+                <div style={{ paddingTop: '4px' }}>
+                  {categories.map((cat) => (
+                    <CategoryCard
+                      key={cat.id}
+                      category={cat}
+                      onSelect={handleCategorySelect}
+                    />
+                  ))}
+                </div>
+              )}
 
               {/* Footer */}
               <Footer />
@@ -162,7 +268,7 @@ export default function App() {
           </>
         )}
 
-        {/* Category Transition Overlay — plays on top of the background screen */}
+        {/* Category Transition Overlay */}
         {transitionCategory && (
           <CategoryTransitionOverlay
             category={transitionCategory}
@@ -180,6 +286,7 @@ export default function App() {
         <SearchModal
           isOpen={isSearchOpen}
           onClose={() => setIsSearchOpen(false)}
+          categories={categories}
           onSelectItem={(item) => setSelectedItem(item)}
         />
       </div>

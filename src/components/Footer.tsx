@@ -1,7 +1,34 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { MapPin, Phone } from 'lucide-react';
+import { fetchSettings, type StoreSettingsApi } from '../api/menuApi';
+
+const DEFAULT_SETTINGS: StoreSettingsApi = {
+  storeName: 'HOOKAHLAB RİZE',
+  title: 'Bize uğrayın.',
+  addressLine1: 'Çarşı Mahallesi, TOKİ AVM',
+  addressLine2: 'Merkez / Rize',
+  workingHours: 'Her gün 08:30 – 00:00',
+  breakfastWeekdays: 'Hafta içi 08:30–15:00',
+  breakfastWeekends: 'Hafta sonu 08:30–16:00',
+  phone: '05513832509',
+  phoneDisplay: '0 551 383 25 09',
+  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=HookahLab+Rize+TOK%C4%B0+AVM',
+  note: 'Resmî tatillerde çalışma saatleri değişebilir.',
+};
 
 export const Footer: React.FC = () => {
+  const [settings, setSettings] = useState<StoreSettingsApi>(DEFAULT_SETTINGS);
+
+  useEffect(() => {
+    fetchSettings()
+      .then((data) => {
+        if (data) setSettings((prev) => ({ ...prev, ...data }));
+      })
+      .catch((err) => {
+        console.warn('Could not load store settings, using defaults:', err);
+      });
+  }, []);
+
   return (
     <footer
       style={{
@@ -50,7 +77,7 @@ export const Footer: React.FC = () => {
             textTransform: 'uppercase',
           }}
         >
-          HOOKAHLAB RİZE
+          {settings.storeName}
         </span>
       </div>
 
@@ -67,7 +94,7 @@ export const Footer: React.FC = () => {
           lineHeight: 1.15,
         }}
       >
-        Bize uğrayın.
+        {settings.title}
       </h2>
 
       {/* Address */}
@@ -80,204 +107,217 @@ export const Footer: React.FC = () => {
           marginBottom: '14px',
         }}
       >
-        <p style={{ margin: 0 }}>Çarşı Mahallesi, TOKİ AVM</p>
-        <p style={{ margin: 0 }}>Merkez / Rize</p>
+        <p style={{ margin: 0 }}>{settings.addressLine1}</p>
+        {settings.addressLine2 && <p style={{ margin: 0 }}>{settings.addressLine2}</p>}
       </div>
 
       {/* Info Rows */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0, marginBottom: '16px' }}>
         {/* ÇALIŞMA SAATLERİ */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '8px',
-            borderBottom: '1px solid rgba(242,101,34,0.15)',
-            padding: '10px 0',
-          }}
-        >
-          <span
-            style={{
-              color: '#d08040',
-              fontSize: '10px',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 700,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              flexShrink: 0,
-            }}
-          >
-            ÇALIŞMA SAATLERİ
-          </span>
-          <span
-            style={{
-              color: '#fff8ee',
-              fontFamily: "'Playfair Display', serif",
-              fontSize: '14px',
-              fontWeight: 600,
-              textAlign: 'right',
-            }}
-          >
-            Her gün 08:30 – 00:00
-          </span>
-        </div>
-
-        {/* KAHVALTI SERVİSİ */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: '8px',
-            borderBottom: '1px solid rgba(242,101,34,0.15)',
-            padding: '10px 0',
-          }}
-        >
-          <span
-            style={{
-              color: '#d08040',
-              fontSize: '10px',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 700,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              flexShrink: 0,
-              paddingTop: '2px',
-            }}
-          >
-            KAHVALTI SERVİSİ
-          </span>
+        {settings.workingHours && (
           <div
             style={{
-              color: '#fff8ee',
-              fontFamily: "'Playfair Display', serif",
-              fontSize: '14px',
-              fontWeight: 600,
-              textAlign: 'right',
-              lineHeight: 1.55,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '8px',
+              borderBottom: '1px solid rgba(242,101,34,0.15)',
+              padding: '10px 0',
             }}
           >
-            <p style={{ margin: 0 }}>Hafta içi 08:30–15:00</p>
-            <p style={{ margin: 0 }}>Hafta sonu 08:30–16:00</p>
+            <span
+              style={{
+                color: '#d08040',
+                fontSize: '10px',
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: 700,
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                flexShrink: 0,
+              }}
+            >
+              ÇALIŞMA SAATLERİ
+            </span>
+            <span
+              style={{
+                color: '#fff8ee',
+                fontFamily: "'Playfair Display', serif",
+                fontSize: '14px',
+                fontWeight: 600,
+                textAlign: 'right',
+              }}
+            >
+              {settings.workingHours}
+            </span>
           </div>
-        </div>
+        )}
+
+        {/* KAHVALTI SERVİSİ */}
+        {(settings.breakfastWeekdays || settings.breakfastWeekends) && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              gap: '8px',
+              borderBottom: '1px solid rgba(242,101,34,0.15)',
+              padding: '10px 0',
+            }}
+          >
+            <span
+              style={{
+                color: '#d08040',
+                fontSize: '10px',
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: 700,
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                flexShrink: 0,
+                paddingTop: '2px',
+              }}
+            >
+              KAHVALTI SERVİSİ
+            </span>
+            <div
+              style={{
+                color: '#fff8ee',
+                fontFamily: "'Playfair Display', serif",
+                fontSize: '14px',
+                fontWeight: 600,
+                textAlign: 'right',
+                lineHeight: 1.55,
+              }}
+            >
+              {settings.breakfastWeekdays && <p style={{ margin: 0 }}>{settings.breakfastWeekdays}</p>}
+              {settings.breakfastWeekends && <p style={{ margin: 0 }}>{settings.breakfastWeekends}</p>}
+            </div>
+          </div>
+        )}
 
         {/* REZERVASYON */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: '8px',
-            borderBottom: '1px solid rgba(242,101,34,0.15)',
-            padding: '10px 0',
-          }}
-        >
-          <span
+        {(settings.phoneDisplay || settings.phone) && (
+          <div
             style={{
-              color: '#d08040',
-              fontSize: '10px',
-              fontFamily: 'Montserrat, sans-serif',
-              fontWeight: 700,
-              letterSpacing: '0.15em',
-              textTransform: 'uppercase',
-              flexShrink: 0,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '8px',
+              borderBottom: '1px solid rgba(242,101,34,0.15)',
+              padding: '10px 0',
             }}
           >
-            REZERVASYON
-          </span>
-          <a
-            href="tel:05513832509"
-            style={{
-              color: '#fff8ee',
-              fontFamily: "'Playfair Display', serif",
-              fontSize: '15px',
-              fontWeight: 700,
-              textDecoration: 'none',
-              letterSpacing: '0.04em',
-            }}
-          >
-            0 551 383 25 09
-          </a>
-        </div>
+            <span
+              style={{
+                color: '#d08040',
+                fontSize: '10px',
+                fontFamily: 'Montserrat, sans-serif',
+                fontWeight: 700,
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                flexShrink: 0,
+              }}
+            >
+              REZERVASYON
+            </span>
+            <a
+              href={`tel:${(settings.phone || '').replace(/\s+/g, '')}`}
+              style={{
+                color: '#fff8ee',
+                fontFamily: "'Playfair Display', serif",
+                fontSize: '15px',
+                fontWeight: 700,
+                textDecoration: 'none',
+                letterSpacing: '0.04em',
+              }}
+            >
+              {settings.phoneDisplay || settings.phone}
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {/* YOL TARİFİ AL */}
-        <a
-          href="https://www.google.com/maps/search/?api=1&query=HookahLab+Rize+TOK%C4%B0+AVM"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '7px',
-            width: '100%',
-            padding: '12px 16px',
-            background: '#f26522',
-            color: '#fff',
-            fontFamily: 'Montserrat, sans-serif',
-            fontSize: '11px',
-            fontWeight: 800,
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-            textDecoration: 'none',
-            borderRadius: '0',
-            border: 'none',
-            cursor: 'pointer',
-            boxSizing: 'border-box',
-            boxShadow: '0 3px 16px rgba(242,101,34,0.30)',
-          }}
-        >
-          <MapPin size={14} strokeWidth={2.5} />
-          <span>YOL TARİFİ AL</span>
-        </a>
+        {settings.googleMapsUrl && (
+          <a
+            href={settings.googleMapsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '7px',
+              width: '100%',
+              padding: '12px 16px',
+              background: '#f26522',
+              color: '#fff',
+              fontFamily: 'Montserrat, sans-serif',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+              borderRadius: '0',
+              border: 'none',
+              cursor: 'pointer',
+              boxSizing: 'border-box',
+              boxShadow: '0 3px 16px rgba(242,101,34,0.30)',
+            }}
+          >
+            <MapPin size={14} strokeWidth={2.5} />
+            <span>YOL TARİFİ AL</span>
+          </a>
+        )}
 
         {/* HEMEN ARA */}
-        <a
-          href="tel:05513832509"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '7px',
-            width: '100%',
-            padding: '12px 16px',
-            background: 'transparent',
-            color: '#e8d8c0',
-            fontFamily: 'Montserrat, sans-serif',
-            fontSize: '11px',
-            fontWeight: 800,
-            letterSpacing: '0.16em',
-            textTransform: 'uppercase',
-            textDecoration: 'none',
-            borderRadius: '0',
-            border: '1px solid rgba(242,101,34,0.40)',
-            cursor: 'pointer',
-            boxSizing: 'border-box',
-          }}
-        >
-          <Phone size={13} strokeWidth={2.5} />
-          <span>HEMEN ARA</span>
-        </a>
+        {settings.phone && (
+          <a
+            href={`tel:${(settings.phone || '').replace(/\s+/g, '')}`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '7px',
+              width: '100%',
+              padding: '12px 16px',
+              background: 'transparent',
+              color: '#e8d8c0',
+              fontFamily: 'Montserrat, sans-serif',
+              fontSize: '11px',
+              fontWeight: 800,
+              letterSpacing: '0.16em',
+              textTransform: 'uppercase',
+              textDecoration: 'none',
+              borderRadius: '0',
+              border: '1px solid rgba(242,101,34,0.40)',
+              cursor: 'pointer',
+              boxSizing: 'border-box',
+            }}
+          >
+            <Phone size={13} strokeWidth={2.5} />
+            <span>HEMEN ARA</span>
+          </a>
+        )}
       </div>
 
       {/* Disclaimer */}
-      <p
-        style={{
-          color: '#6a5c4e',
-          fontSize: '10px',
-          fontFamily: 'Montserrat, sans-serif',
-          marginTop: '14px',
-          marginBottom: 0,
-          lineHeight: 1.5,
-        }}
-      >
-        Resmî tatillerde çalışma saatleri değişebilir.
-      </p>
+      {settings.note && (
+        <p
+          style={{
+            color: '#6a5c4e',
+            fontSize: '10px',
+            fontFamily: 'Montserrat, sans-serif',
+            marginTop: '14px',
+            marginBottom: 0,
+            lineHeight: 1.5,
+          }}
+        >
+          {settings.note}
+        </p>
+      )}
     </footer>
   );
 };
+
