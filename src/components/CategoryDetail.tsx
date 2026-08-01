@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import type { Category, MenuItem } from '../types/menu';
 import { Footer } from './Footer';
+import { resolveMediaUrl } from '../api/menuApi';
 
 interface CategoryDetailProps {
   category: Category;
@@ -169,7 +170,7 @@ export const CategoryDetail: React.FC<CategoryDetailProps> = ({
                       {/* Left Thumbnail */}
                       <div className="w-[80px] h-[80px] rounded-2xl overflow-hidden bg-black/60 border border-[#3a312a]/60 shrink-0 relative shadow-md">
                         <img
-                          src={item.img}
+                          src={resolveMediaUrl(item.img)}
                           alt={item.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
@@ -208,7 +209,7 @@ export const CategoryDetail: React.FC<CategoryDetailProps> = ({
               >
                 <div className="w-[80px] h-[80px] rounded-2xl overflow-hidden bg-black/60 border border-[#3a312a]/60 shrink-0 relative shadow-md">
                   <img
-                    src={item.img}
+                    src={resolveMediaUrl(item.img)}
                     alt={item.name}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />

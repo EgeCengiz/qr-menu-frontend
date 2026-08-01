@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowUpRight } from 'lucide-react';
 import type { Category } from '../types/menu';
+import { resolveMediaUrl } from '../api/menuApi';
 
 interface CategoryCardProps {
   category: Category;
@@ -87,7 +88,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, onSelect }
           }}
         >
           <img
-            src={category.img}
+            src={resolveMediaUrl(category.img)}
             alt={category.title}
             style={{
               width: '100%',

@@ -9,6 +9,22 @@ function getApiBaseUrl(): string {
   return envUrl || 'http://localhost:3001/api';
 }
 
+export function resolveMediaUrl(url?: string | null): string {
+  if (!url) return '';
+  const apiBase = getApiBaseUrl().replace(/\/api\/?$/, '');
+
+  if (url.startsWith('/uploads')) {
+    return `${apiBase}${url}`;
+  }
+
+  if (url.includes('/uploads/')) {
+    const filename = url.substring(url.indexOf('/uploads/'));
+    return `${apiBase}${filename}`;
+  }
+
+  return url;
+}
+
 export interface MenuItemApi {
   id: number;
   name: string;

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Sparkles } from 'lucide-react';
 import type { MenuItem } from '../types/menu';
+import { resolveMediaUrl } from '../api/menuApi';
 
 interface ItemDetailModalProps {
   item: MenuItem | null;
@@ -15,7 +16,7 @@ export const ItemDetailModal: React.FC<ItemDetailModalProps> = ({ item, onClose 
       {/* Item Image Header with Gradient Overlay */}
       <div className="relative h-80 w-full bg-black shrink-0">
         <img
-          src={item.img}
+          src={resolveMediaUrl(item.img)}
           alt={item.name}
           className="w-full h-full object-cover opacity-85"
         />
